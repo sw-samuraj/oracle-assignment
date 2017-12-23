@@ -1,0 +1,78 @@
+#!/bin/bash
+HOME=/opt/app-root/src
+
+LOCAL_SOURCE_DIR=${HOME}/source
+mkdir -p $LOCAL_SOURCE_DIR
+
+DEPLOY_DIR=/opt/openshift
+
+if compgen -G "/tmp/src/*" >/dev/null; then
+  mkdir -p $LOCAL_SOURCE_DIR
+  cp -ad /tmp/src/* $LOCAL_SOURCE_DIR
+fi
+
+if [ -f "$LOCAL_SOURCE_DIR/build.gradle" ]; then
+  ARTIFACT_DIR=${ARTIFACT_DIR:-build/libs}
+
+  echo "Building with gradle. $LOCAL_SOURCE_DIR/build.gradle found."
+
+  GRADLE_CMD="gradle"
+      
+  pushd $LOCAL_SOURCE_DIR &> /dev/null
+
+  if [ -z "$BUILDER_ARGS" ]; then
+    export BUILDER_ARGS="build -x test"
+  fi
+
+  echo "Found gradle.build ... attempting to build with '$GRADLE_CMD -s ${BUILDER_ARGS}'"
+
+  echo "Gradle version:"
+  $GRADLE_CMD --version
+
+  # Execute the actual build
+  $GRADLE_CMD -s $BUILDER_ARGS
+
+  ERR=$?
+  if [ $ERR -ne 0 ]; then
+    echo "Aborting due to error code $ERR from Gradle build"
+    exit $ERR
+  fi
+
+  copy_artifacts "$ARTIFACT_DIR" jar
+
+  $GRADLE_CMD clean
+
+  popd &> /dev/null
+fi
+
+function copy_artifacts() {
+  dir=$1
+  types=
+  shift
+  while [ $# -gt 0 ]; do
+    types="$types;$1"
+    shift
+  done
+
+  for d in $(echo $dir | tr "," "\n")
+  do
+    shift
+    for t in $(echo $types | tr ";" "\n")
+    do
+      echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
+      cp -rfv $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
+    done
+  done
+}
+
+if [ $(ls ${DEPLOY_DIR}/*${APP_SUFFIX}.jar | wc -l) -eq 1 ]; then
+  echo "[INFO] Copying ${DEPLOY_DIR}/*${APP_SUFFIX}.jar into ${DEPLOY_DIR}/app.jar"
+  cp ${DEPLOY_DIR}/*${APP_SUFFIX}.jar ${DEPLOY_DIR}/app.jar
+  [ ! -f ${DEPLOY_DIR}/app.jar ] && echo "Application could not be properly built." && exit 1
+  echo "[INFO] Application jar file is located in ${DEPLOY_DIR}/app.jar"
+else
+  echo "[ERROR] No app.jar file located in ${DEPLOY_DIR}"
+  exit 1
+fi
+
+exit 0
