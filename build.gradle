@@ -1,0 +1,54 @@
+plugins {
+    id 'war'
+    id 'scala'
+    id 'org.akhikhl.gretty' version '1.4.2'
+    id 'org.hidetake.swagger.generator' version '2.4.2'
+}
+
+group = 'cz.swsamuraj.orcl'
+version = '0.1.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.12.3'
+    compile 'org.springframework:spring-webmvc:4.3.8.RELEASE'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+    compile 'org.apache.logging.log4j:log4j-core:2.8.1'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.scalatest:scalatest_2.12:3.0.3'
+    providedCompile 'io.swagger:swagger-annotations:1.5.10'
+    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.2.1'
+}
+
+war {
+    baseName = 'orcl-list'
+}
+
+gretty {
+    httpPort = 4040
+    contextPath = 'orcl-list'
+}
+
+validateSwagger {
+    inputFile = file('src/main/swagger/orcl.yaml')
+}
+
+generateSwaggerCode {
+    inputFile = file('src/main/swagger/orcl.yaml')
+    language = 'spring'
+    configFile = file('src/main/swagger/config.json')
+    components = ['models', 'apis']
+    outputDir = file('src/generated/swagger')
+}
+
+sourceSets.main.java {
+    srcDir 'src/generated/swagger'
+}
+
+compileJava.dependsOn tasks.generateSwaggerCode

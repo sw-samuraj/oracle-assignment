@@ -1,0 +1,6 @@
+{
+  "sourceFolder": "",
+  "modelPackage": "cz.swsamuraj.orcl.ws.model",
+  "apiPackage":   "cz.swsamuraj.orcl.ws.api",
+  "interfaceOnly": true
+}

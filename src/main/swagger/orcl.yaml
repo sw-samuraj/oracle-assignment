@@ -1,0 +1,75 @@
+swagger: "2.0"
+
+info:
+  version: "0.1.0"
+  title: "Multi-threaded list"
+
+paths:
+  /list/push:
+    post:
+      summary: "push a new element to the list"
+      operationId: "push"
+      consumes:
+      - "application/json"
+      parameters:
+        - name: "element"
+          in: "body"
+          schema:
+            $ref: "#/definitions/Element"
+      responses:
+        204:
+          description: "No Content; element added"
+        400:
+          description: "Bad Request; Invalid input data"
+        500:
+          description: "Internal Server Error"
+  /list/pop:
+    get:
+      summary: "pop the last element from the list"
+      operationId: "pop"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "OK; element popped"
+          schema:
+            $ref: "#/definitions/Element"
+        500:
+          description: "Internal Server Error"
+  /list/insertAfter:
+    post:
+      summary: "insert a new element after given element"
+      operationId: "insertAfter"
+      consumes:
+      - "application/json"
+      parameters:
+        - name: "insertAfter"
+          in: "body"
+          schema:
+            $ref: "#/definitions/InsertAfter"
+      responses:
+        204:
+          description: "No Content; element added"
+        400:
+          description: "Bad Request; Invalid input data"
+        500:
+          description: "Internal Server Error"
+
+definitions:
+  Element:
+    type: "object"
+    required:
+      - "value"
+    properties:
+      value:
+        type: "string"
+  InsertAfter:
+    type: "object"
+    required:
+      - "element"
+      - "after"
+    properties:
+      element:
+        $ref: "#/definitions/Element"
+      after:
+        $ref: "#/definitions/Element"
