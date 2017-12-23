@@ -14,3 +14,7 @@ of [Swagger](http://swagger.io/) and [Gradle](https://gradle.org/).
 1. Run *SoapUI* test suite `Multi-thread list TestSuite`.
 1. See the log messages in the console.
 1. Browse the source code.
+
+## License ##
+
+The **oracle-assignment** project is published under [BSD 3-Clause](http://opensource.org/licenses/BSD-3-Clause) license.
